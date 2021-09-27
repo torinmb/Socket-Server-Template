@@ -34,17 +34,19 @@ wss.on("connection", function (ws, req) {
 
   ws.on("message", (data) => {
     // console.log('got message', data)
-    if (isJSON(data)) {
-      // Message is a valid JSON string, non-encrypted
-      const result = JSON.parse(data);
-      if (result !== "") {
-        // console.log(result);
-        if (result === PING_SAFEWORD) return;
-        broadcast(ws, result, false);
-      } else {
-        console.log("empty json");
-      }
-    }
+    if(data === "keepAlive") return;
+    broadcast(ws, data, false);
+    // if (isJSON(data)) {
+    //   // Message is a valid JSON string, non-encrypted
+    //   const result = JSON.parse(data);
+    //   if (result !== "") {
+    //     // console.log(result);
+    //     if (result === PING_SAFEWORD) return;
+    //     broadcast(ws, result, false);
+    //   } else {
+    //     console.log("empty json");
+    //   }
+    // }
   });
 
   ws.on("close", (data) => {
