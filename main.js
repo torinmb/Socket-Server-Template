@@ -34,7 +34,10 @@ wss.on("connection", function (ws, req) {
 
   ws.on("message", (data) => {
     // console.log('got message', data)
-    if(data === "keepAlive") return;
+    if(data === "keepAlive") {
+      console.log('keepAlive');
+      return; 
+    }
     broadcast(ws, data, false);
     // if (isJSON(data)) {
     //   // Message is a valid JSON string, non-encrypted
