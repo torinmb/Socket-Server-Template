@@ -34,11 +34,13 @@ wss.on("connection", function (ws, req) {
 
   ws.on("message", (data) => {
     // console.log('got message', data)
-    if(data === "keepAlive") {
+    const result = JSON.parse(data);
+    
+    if(result['sender'] === "keepAlive") {
       console.log('keepAlive');
       return; 
     }
-    broadcast(ws, data, false);
+    broadcast(ws, result, false);
     // if (isJSON(data)) {
     //   // Message is a valid JSON string, non-encrypted
     //   const result = JSON.parse(data);
@@ -73,7 +75,7 @@ const broadcast = (ws, message, includeSelf) => {
   } else {
     wss.clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(message);
+        client.send(JSON.stringify(message));
       }
     });
   }
@@ -94,10 +96,10 @@ const isJSON = (message) => {
  */
 const keepServerAlive = () => {
   keepAliveId = setInterval(() => {
-    const keepAliveMessage = PING_SAFEWORD;
+    const keepAliveMessage = {'sender': 'keepAlive'};
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(keepAliveMessage);
+        client.send(JSON.stringify(keepAliveMessage));
       }
     });
   }, 50000);
