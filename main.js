@@ -73,7 +73,7 @@ const broadcast = (ws, message, includeSelf) => {
   } else {
     wss.clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(message));
+        client.send(message);
       }
     });
   }
