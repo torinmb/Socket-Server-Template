@@ -33,7 +33,7 @@ wss.on("connection", function (ws, req) {
       const currData = JSON.parse(data);
       broadcast(ws, currData, false);
     } else if(typeof currData === 'string') {
-      if(currData === 'ping') {
+      if(currData === 'pong') {
         console.log('keepAlive');
         return;
       }
