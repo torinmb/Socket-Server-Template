@@ -11,39 +11,29 @@ const WebSocket = require("ws");
 
 let keepAliveId;
 
-const PING_SAFEWORD = "bananaStand";
-
 const wss =
   process.env.NODE_ENV === "production"
     ? new WebSocket.Server({ server })
     : new WebSocket.Server({ port: 5001 });
 
 server.listen(port);
-console.log('test', wss);
 console.log(`Server started on port ${process.env.PORT} in stage ${process.env.NODE_ENV}`);
 
 wss.on("connection", function (ws, req) {
   console.log("Connection Opened");
-
   console.log("Client size: ", wss.clients.size);
 
   if (wss.clients.size === 1) {
     console.log("first connection. starting keepalive");
-    // keepServerAlive();
+    keepServerAlive();
   }
 
   ws.on("message", (data) => {
-    // console.log('got message', data)
-    
     if (isJSON(data)) {
       const currData = JSON.parse(data);
-      if('sender' in currData && currData['sender'] === "keepAlive") {
-        console.log('keepAlive');
-        return; 
-      }
       broadcast(ws, currData, false);
     } else if(typeof currData === 'string') {
-      if(currData === 'keepAlive') {
+      if(currData === 'ping') {
         console.log('keepAlive');
         return;
       }
@@ -51,18 +41,6 @@ wss.on("connection", function (ws, req) {
     } else {
       console.error('malformed message', data);
     }
-    
-    // if (isJSON(data)) {
-    //   // Message is a valid JSON string, non-encrypted
-    //   const result = JSON.parse(data);
-    //   if (result !== "") {
-    //     // console.log(result);
-    //     if (result === PING_SAFEWORD) return;
-    //     broadcast(ws, result, false);
-    //   } else {
-    //     console.log("empty json");
-    //   }
-    // }
   });
 
   ws.on("close", (data) => {
@@ -70,6 +48,7 @@ wss.on("connection", function (ws, req) {
 
     if (wss.clients.size === 0) {
       console.log("last client disconnected, stopping keepAlive interval");
+      clearInterval(keepAliveId);
     }
   });
 });
@@ -98,6 +77,19 @@ const isJSON = (message) => {
   } catch (err) {
     return false;
   }
+};
+
+/**
+ * Sends a ping message to all connected clients every 50 seconds
+ */
+ const keepServerAlive = () => {
+  keepAliveId = setInterval(() => {
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send('ping');
+      }
+    });
+  }, 50000);
 };
 
 
