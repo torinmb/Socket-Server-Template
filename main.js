@@ -29,17 +29,19 @@ wss.on("connection", function (ws, req) {
   }
 
   ws.on("message", (data) => {
-    if (isJSON(data)) {
-      const currData = JSON.parse(data);
-      broadcast(ws, currData, false);
-    } else if(typeof currData === 'string') {
-      if(currData === 'pong') {
-        console.log('keepAlive');
-        return;
+    let stringifiedData = data.toString();
+    if (stringifiedData === 'pong') {
+      console.log('keepAlive');
+      return;
+    }
+
+    try {
+      const parsedData = JSON.parse(stringifiedData);
+      if (parsedData && typeof parsedData === 'object') {
+        broadcast(ws, parsedData, false);
       }
-      broadcast(ws, currData, false);
-    } else {
-      console.error('malformed message', data);
+    } catch {
+      broadcast(ws, stringifiedData, false);
     }
   });
 
@@ -67,15 +69,6 @@ const broadcast = (ws, message, includeSelf) => {
         client.send(JSON.stringify(message));
       }
     });
-  }
-};
-
-const isJSON = (message) => {
-  try {
-    const obj = JSON.parse(message);
-    return obj && typeof obj === "object";
-  } catch (err) {
-    return false;
   }
 };
 
