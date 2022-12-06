@@ -34,9 +34,6 @@ wss.on("connection", function (ws, req) {
       console.log('keepAlive');
       return;
     }
-    console.log(stringifiedData)
-    console.log(JSON.stringify(JSON.parse(data)))
-    console.log(stringifiedData === JSON.stringify(JSON.parse(data)))
     broadcast(ws, stringifiedData, false);
   });
 
