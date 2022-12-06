@@ -34,15 +34,7 @@ wss.on("connection", function (ws, req) {
       console.log('keepAlive');
       return;
     }
-
-    try {
-      const parsedData = JSON.parse(stringifiedData);
-      if (parsedData && typeof parsedData === 'object') {
-        broadcast(ws, parsedData, false);
-      }
-    } catch {
-      broadcast(ws, stringifiedData, false);
-    }
+    broadcast(ws, stringifiedData, false);
   });
 
   ws.on("close", (data) => {
