@@ -5,7 +5,7 @@ const app = express();
 app.use(express.static("public"));
 // require("dotenv").config();
 
-const port = process.env.PORT || 3000;
+const serverPort = process.env.PORT || 3000;
 const server = http.createServer(app);
 const WebSocket = require("ws");
 
@@ -16,8 +16,8 @@ const wss =
     ? new WebSocket.Server({ server })
     : new WebSocket.Server({ port: 5001 });
 
-server.listen(port);
-console.log(`Server started on port ${process.env.PORT} in stage ${process.env.NODE_ENV}`);
+server.listen(serverPort);
+console.log(`Server started on port ${serverPort} in stage ${process.env.NODE_ENV}`);
 
 wss.on("connection", function (ws, req) {
   console.log("Connection Opened");
