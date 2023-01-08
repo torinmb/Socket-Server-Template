@@ -5,7 +5,7 @@ const app = express();
 app.use(express.static("public"));
 // require("dotenv").config();
 
-const port = process.env.PORT || 3000;
+const serverPort = process.env.PORT || 3000;
 const server = http.createServer(app);
 const WebSocket = require("ws");
 
@@ -16,8 +16,8 @@ const wss =
     ? new WebSocket.Server({ server })
     : new WebSocket.Server({ port: 5001 });
 
-server.listen(port);
-console.log(`Server started on port ${process.env.PORT} in stage ${process.env.NODE_ENV}`);
+server.listen(serverPort);
+console.log(`Server started on port ${serverPort} in stage ${process.env.NODE_ENV}`);
 
 wss.on("connection", function (ws, req) {
   console.log("Connection Opened");
@@ -29,18 +29,12 @@ wss.on("connection", function (ws, req) {
   }
 
   ws.on("message", (data) => {
-    if (isJSON(data)) {
-      const currData = JSON.parse(data);
-      broadcast(ws, currData, false);
-    } else if(typeof currData === 'string') {
-      if(currData === 'pong') {
-        console.log('keepAlive');
-        return;
-      }
-      broadcast(ws, currData, false);
-    } else {
-      console.error('malformed message', data);
+    let stringifiedData = data.toString();
+    if (stringifiedData === 'pong') {
+      console.log('keepAlive');
+      return;
     }
+    broadcast(ws, stringifiedData, false);
   });
 
   ws.on("close", (data) => {
@@ -64,18 +58,9 @@ const broadcast = (ws, message, includeSelf) => {
   } else {
     wss.clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(message));
+        client.send(message);
       }
     });
-  }
-};
-
-const isJSON = (message) => {
-  try {
-    const obj = JSON.parse(message);
-    return obj && typeof obj === "object";
-  } catch (err) {
-    return false;
   }
 };
 
