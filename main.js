@@ -81,3 +81,11 @@ const broadcast = (ws, message, includeSelf) => {
 app.get('/', (req, res) => {
     res.send('Hello me!');
 });
+
+document.addEventListener('mousemove', logKey);
+
+function logKey(e) {
+  screenLog.innerText = `
+    Screen X/Y: ${e.screenX}, ${e.screenY}
+    Client X/Y: ${e.clientX}, ${e.clientY}`;
+}
