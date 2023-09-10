@@ -36,15 +36,15 @@ wss.on("connection", function (ws, req) {
     );
 
     ws.on("message", (data) => {
-        let stringifiedData = data.toString();
+        // let stringifiedData = data.toString();
 
-        if (stringifiedData === "pong") {
+        if (data === "pong") {
             console.log("keepAlive", ws.key);
             clearTimeout(ws.pingTimeout);
             return;
         }
 
-        if (stringifiedData === "TOUCHDESIGNER_ID") {
+        if (data === "TOUCHDESIGNER_ID") {
             ws.key = 0;
             touchDesignerClient = ws;
             console.log("TouchDesigner client connected!");
@@ -76,7 +76,7 @@ wss.on("connection", function (ws, req) {
             if (ws.key !== undefined) {
                 const modifiedMessage = {
                     id: ws.key,
-                    data: stringifiedData,
+                    data: data,
                 };
                 touchDesignerClient.send(JSON.stringify(modifiedMessage));
             }
