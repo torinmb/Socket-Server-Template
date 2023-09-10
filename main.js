@@ -9,7 +9,8 @@ const ACTIVE_LIMIT = 5;
 // Storage for clients and queue
 // let mainClients = [];
 let mainClients = {};
-let availableKeys = Array.from({ length: ACTIVE_LIMIT }, (_, i) => i); // Initialize with all available keys
+let availableKeys = Array.from({ length: ACTIVE_LIMIT - 1 }, (_, i) => i + 1); // Initialize with all available keys except 0
+
 let queuedClients = [];
 let touchDesignerClient = null;
 
@@ -44,6 +45,7 @@ wss.on("connection", function (ws, req) {
         }
 
         if (stringifiedData === "TOUCHDESIGNER_ID") {
+            ws.key = 0;
             touchDesignerClient = ws;
             console.log("TouchDesigner client connected!");
             return;
@@ -97,7 +99,7 @@ wss.on("connection", function (ws, req) {
             return;
         }
 
-        if (ws.key !== undefined) {
+        if (ws.key !== undefined && ws.key !== 0) {
             delete mainClients[ws.key];
             availableKeys.push(ws.key); // Return the key to the pool
         }
