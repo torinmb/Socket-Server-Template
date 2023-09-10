@@ -26,7 +26,7 @@ server.listen(serverPort);
 console.log(`Server started on port ${serverPort} in stage ${process.env.NODE_ENV}`);
 
 wss.on("connection", function (ws, req) {
-  console.log(`Connection Opened Main Clients:${mainClients.length} Queued Clients:${queuedClients.length}`);
+  console.log(`Connection Opened Main Clients:${Object.keys(mainClients).length} Queued Clients:${queuedClients.length}`);
 
   ws.on("message", (data) => {
     let stringifiedData = data.toString();
