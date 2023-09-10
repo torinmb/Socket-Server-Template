@@ -61,19 +61,20 @@ wss.on("connection", function (ws, req) {
             }
         }
     });
-
-    if (
-        Object.keys(mainClients).length < ACTIVE_LIMIT &&
-        availableKeys.length > 0
-    ) {
-        ws.key = availableKeys.shift(); // Assign an available key
-        mainClients[ws.key] = ws;
-        ws.send(
-            JSON.stringify({ type: "status", status: "connected", key: ws.key })
-        );
-    } else {
-        queuedClients.push(ws);
-        ws.send(JSON.stringify({ type: "status", status: "queued" }));
+    if (ws !== touchDesignerClient) {
+      if (
+          Object.keys(mainClients).length < ACTIVE_LIMIT &&
+          availableKeys.length > 0
+      ) {
+          ws.key = availableKeys.shift(); // Assign an available key
+          mainClients[ws.key] = ws;
+          ws.send(
+              JSON.stringify({ type: "status", status: "connected", key: ws.key })
+          );
+      } else {
+          queuedClients.push(ws);
+          ws.send(JSON.stringify({ type: "status", status: "queued" }));
+      }
     }
     // Manage new connections
     // if (mainClients.length < ACTIVE_LIMIT) {
