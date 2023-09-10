@@ -36,15 +36,15 @@ wss.on("connection", function (ws, req) {
     );
 
     ws.on("message", (data) => {
-        // let stringifiedData = data.toString();
-
-        if (data === "pong") {
+        let stringifiedData = data.toString();
+        console.log('data', data)
+        if (stringifiedData === "pong") {
             console.log("keepAlive", ws.key);
             clearTimeout(ws.pingTimeout);
             return;
         }
 
-        if (data === "TOUCHDESIGNER_ID") {
+        if (stringifiedData === "TOUCHDESIGNER_ID") {
             ws.key = 0;
             touchDesignerClient = ws;
             console.log("TouchDesigner client connected!");
