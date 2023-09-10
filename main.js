@@ -148,31 +148,52 @@ const broadcast = (ws, message, includeSelf) => {
  * Sends a ping message to all connected clients every 50 seconds
  */
 const keepServerAlive = () => {
-    const pingClients = () => {
-        wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-                // Start a timeout for each client
-                client.pingTimeout = setTimeout(() => {
-                    console.log(
-                        "Client did not respond in time. Closing connection."
-                    );
-                    client.terminate(); // Close the connection
-                }, 10000); // Here we're giving the client 10 seconds to respond. Adjust as needed.
+  const pingClients = () => {
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        // Start a timeout for each client
+        client.pingTimeout = setTimeout(() => {
+          console.log("Client did not respond in time. Closing connection.");
+          
+          // Check if the client is in mainClients and remove it if it is
+          if (client.key !== undefined && mainClients[client.key]) {
+            delete mainClients[client.key];
+            availableKeys.push(client.key);  // Return the key to the pool
+          }
 
-                // Send the ping
-                client.ping();
-            }
-        });
+          // Check if the client is in queuedClients and remove it
+          const index = queuedClients.indexOf(client);
+          if (index !== -1) {
+            queuedClients.splice(index, 1);
+          }
 
-        setTimeout(pingClients, 50000);
-    };
+          // Promote next client from queuedClients to mainClients
+          if (queuedClients.length > 0 && availableKeys.length > 0) {
+            const promotedClient = queuedClients.shift();
+            promotedClient.key = availableKeys.shift();
+            mainClients[promotedClient.key] = promotedClient;
+            promotedClient.send(JSON.stringify({ type: 'status', status: 'connected', key: promotedClient.key }));
+          }
 
-    // Listen for pong responses
-    wss.on("pong", (client) => {
-        clearTimeout(client.pingTimeout); // Clear the timeout as the client responded
+          // Finally, terminate the client's connection
+          client.terminate();
+
+        }, 10000);  // Here we're giving the client 10 seconds to respond. Adjust as needed.
+        
+        // Send the ping
+        client.ping();
+      }
     });
+    
+    setTimeout(pingClients, 50000);
+  };
 
-    pingClients();
+  // Listen for pong responses
+  wss.on('pong', (client) => {
+    clearTimeout(client.pingTimeout);  // Clear the timeout as the client responded
+  });
+
+  pingClients();
 };
 
 keepServerAlive();
