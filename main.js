@@ -7,7 +7,9 @@ const WebSocket = require("ws");
 const ACTIVE_LIMIT = 20;
 
 // Storage for clients and queue
-let mainClients = [];
+// let mainClients = [];
+let mainClients = {};
+let availableKeys = Array.from({ length: ACTIVE_LIMIT }, (_, i) => i);  // Initialize with all available keys
 let queuedClients = [];
 let touchDesignerClient = null;
 
@@ -18,13 +20,13 @@ const server = http.createServer(app);
 const wss =
   process.env.NODE_ENV === "production"
     ? new WebSocket.Server({ server })
-    : new WebSocket.Server({ port: 5001 });
+     : new WebSocket.Server({ port: 5001 });
 
 server.listen(serverPort);
 console.log(`Server started on port ${serverPort} in stage ${process.env.NODE_ENV}`);
 
 wss.on("connection", function (ws, req) {
-  console.log("Connection Opened");
+  console.log(`Connection Opened Main Clients:${mainClients.length} Queued Clients:${queuedClients.length}`);
 
   ws.on("message", (data) => {
     let stringifiedData = data.toString();
@@ -40,19 +42,33 @@ wss.on("connection", function (ws, req) {
       return;
     }
 
-    if (touchDesignerClient) {
-      touchDesignerClient.send(stringifiedData);
+    if (touchDesignerClient && touchDesignerClient.readyState === WebSocket.OPEN) {
+      if (ws.key !== undefined) {
+        const modifiedMessage = {
+            id: ws.key,
+            data: stringifiedData
+        };
+        touchDesignerClient.send(JSON.stringify(modifiedMessage));
+    }
     }
   });
 
-  // Manage new connections
-  if (mainClients.length < ACTIVE_LIMIT) {
-    mainClients.push(ws);
-    ws.send(JSON.stringify({ type: 'status', status: 'connected' }));
+  if (Object.keys(mainClients).length < ACTIVE_LIMIT && availableKeys.length > 0) {
+      ws.key = availableKeys.shift();  // Assign an available key
+      mainClients[ws.key] = ws;
+      ws.send(JSON.stringify({ type: 'status', status: 'connected', key: ws.key }));
   } else {
-    queuedClients.push(ws);
-    ws.send(JSON.stringify({ type: 'status', status: 'queued' }));
+      queuedClients.push(ws);
+      ws.send(JSON.stringify({ type: 'status', status: 'queued' }));
   }
+  // Manage new connections
+  // if (mainClients.length < ACTIVE_LIMIT) {
+  //   mainClients.push(ws);
+  //   ws.send(JSON.stringify({ type: 'status', status: 'connected' }));
+  // } else {
+  //   queuedClients.push(ws);
+  //   ws.send(JSON.stringify({ type: 'status', status: 'queued' }));
+  // }
 
   ws.on("close", (data) => {
     console.log("closing connection");
@@ -61,19 +77,33 @@ wss.on("connection", function (ws, req) {
     if (ws === touchDesignerClient) {
         console.log("TouchDesigner client disconnected!");
         touchDesignerClient = null;
-        broadcast(null, JSON.stringify({ type: 'status', status: 'touchDesignerOffline' }), true);
+        // broadcast(null, JSON.stringify({ type: 'status', status: 'touchDesignerOffline' }), true);
+        return
     }
 
-    // Handle other clients
-    mainClients = mainClients.filter(client => client !== ws);
-    queuedClients = queuedClients.filter(client => client !== ws);
-
-    // Promote queued clients
-    if (mainClients.length < ACTIVE_LIMIT && queuedClients.length > 0) {
-      const promotedClient = queuedClients.shift();
-      mainClients.push(promotedClient);
-      promotedClient.send(JSON.stringify({ type: 'status', status: 'promoted' }));
+    if (ws.key !== undefined) {
+        delete mainClients[ws.key];
+        availableKeys.push(ws.key);  // Return the key to the pool
     }
+
+    // Promote queued clients if there are available keys
+    while (queuedClients.length > 0 && availableKeys.length > 0) {
+        const promotedClient = queuedClients.shift();
+        promotedClient.key = availableKeys.shift();
+        mainClients[promotedClient.key] = promotedClient;
+        promotedClient.send(JSON.stringify({ type: 'status', status: 'connected', key: promotedClient.key }));
+    }
+
+    // // Handle other clients
+    // mainClients = mainClients.filter(client => client !== ws);
+    // queuedClients = queuedClients.filter(client => client !== ws);
+
+    // // Promote queued clients
+    // if (mainClients.length < ACTIVE_LIMIT && queuedClients.length > 0) {
+    //   const promotedClient = queuedClients.shift();
+    //   mainClients.push(promotedClient);
+    //   promotedClient.send(JSON.stringify({ type: 'status', status: 'promoted' }));
+    // }
   });
 });
 
