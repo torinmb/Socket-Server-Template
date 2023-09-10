@@ -184,7 +184,7 @@ const keepServerAlive = () => {
       }
     });
     
-    setTimeout(pingClients, 50000);
+    setTimeout(pingClients, 10000);
   };
 
   // Listen for pong responses
