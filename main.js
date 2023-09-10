@@ -100,20 +100,7 @@ wss.on("connection", function (ws, req) {
             delete mainClients[ws.key];
             availableKeys.push(ws.key); // Return the key to the pool
         }
-
-        // Promote queued clients if there are available keys
-        while (queuedClients.length > 0 && availableKeys.length > 0) {
-            const promotedClient = queuedClients.shift();
-            promotedClient.key = availableKeys.shift();
-            mainClients[promotedClient.key] = promotedClient;
-            promotedClient.send(
-                JSON.stringify({
-                    type: "status",
-                    status: "connected",
-                    key: promotedClient.key,
-                })
-            );
-        }
+        promoteClients();
 
         // // Handle other clients
         // mainClients = mainClients.filter(client => client !== ws);
@@ -145,6 +132,23 @@ const broadcast = (ws, message, includeSelf) => {
     }
 };
 
+const promoteClients = () => {
+  // Promote queued clients if there are available keys
+  while (queuedClients.length > 0 && availableKeys.length > 0) {
+      const promotedClient = queuedClients.shift();
+      promotedClient.key = availableKeys.shift();
+      mainClients[promotedClient.key] = promotedClient;
+      promotedClient.send(
+          JSON.stringify({
+              type: "status",
+              status: "connected",
+              key: promotedClient.key,
+          })
+      );
+  }
+};
+
+
 /**
  * Sends a ping message to all connected clients every 50 seconds
  */
@@ -168,13 +172,7 @@ const keepServerAlive = () => {
             queuedClients.splice(index, 1);
           }
 
-          // Promote next client from queuedClients to mainClients
-          if (queuedClients.length > 0 && availableKeys.length > 0) {
-            const promotedClient = queuedClients.shift();
-            promotedClient.key = availableKeys.shift();
-            mainClients[promotedClient.key] = promotedClient;
-            promotedClient.send(JSON.stringify({ type: 'status', status: 'connected', key: promotedClient.key }));
-          }
+          promoteClients();
 
           // Finally, terminate the client's connection
           client.terminate();
