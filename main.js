@@ -39,6 +39,7 @@ wss.on("connection", function (ws, req) {
 
         if (stringifiedData === "pong") {
             console.log("keepAlive");
+            clearTimeout(ws.pingTimeout);
             return;
         }
 
@@ -180,7 +181,8 @@ const keepServerAlive = () => {
         }, 10000);  // Here we're giving the client 10 seconds to respond. Adjust as needed.
         
         // Send the ping
-        client.ping();
+        client.send('ping');
+        
       }
     });
     
@@ -188,10 +190,10 @@ const keepServerAlive = () => {
   };
 
   // Listen for pong responses
-  wss.on('pong', (client) => {
-    console.log('got pong from client', client)
-    clearTimeout(client.pingTimeout);  // Clear the timeout as the client responded
-  });
+  // wss.on('pong', (client) => {
+  //   console.log('got pong from client', client)
+  //   clearTimeout(client.pingTimeout);  // Clear the timeout as the client responded
+  // });
 
   wss.on('error', (error) => {
     console.error('WebSocket Error:', error);
