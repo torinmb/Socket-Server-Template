@@ -37,7 +37,6 @@ wss.on("connection", function (ws, req) {
 
     ws.on("message", (data) => {
         let stringifiedData = data.toString();
-        console.log('data', data)
         if (stringifiedData === "pong") {
             console.log("keepAlive", ws.key);
             clearTimeout(ws.pingTimeout);
@@ -76,7 +75,7 @@ wss.on("connection", function (ws, req) {
             if (ws.key !== undefined) {
                 const modifiedMessage = {
                     id: ws.key,
-                    data: data,
+                    data: JSON.parse(data),
                 };
                 touchDesignerClient.send(JSON.stringify(modifiedMessage));
             }
