@@ -38,7 +38,7 @@ wss.on("connection", function (ws, req) {
         let stringifiedData = data.toString();
 
         if (stringifiedData === "pong") {
-            console.log("keepAlive");
+            console.log("keepAlive", ws.key);
             clearTimeout(ws.pingTimeout);
             return;
         }
@@ -175,8 +175,12 @@ const keepServerAlive = () => {
 
           promoteClients();
 
+
           // Finally, terminate the client's connection
-          client.terminate();
+          if(client !== touchDesignerClient){
+            client.terminate();
+          }
+          
 
         }, 10000);  // Here we're giving the client 10 seconds to respond. Adjust as needed.
         
