@@ -193,6 +193,10 @@ const keepServerAlive = () => {
     clearTimeout(client.pingTimeout);  // Clear the timeout as the client responded
   });
 
+  wss.on('error', (error) => {
+    console.error('WebSocket Error:', error);
+  });
+
   pingClients();
 };
 
