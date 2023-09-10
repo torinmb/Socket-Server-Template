@@ -4,7 +4,7 @@ const app = express();
 const WebSocket = require("ws");
 
 // Constants
-const ACTIVE_LIMIT = 20;
+const ACTIVE_LIMIT = 5;
 
 // Storage for clients and queue
 // let mainClients = [];
@@ -189,6 +189,7 @@ const keepServerAlive = () => {
 
   // Listen for pong responses
   wss.on('pong', (client) => {
+    console.log('got pong from client', client)
     clearTimeout(client.pingTimeout);  // Clear the timeout as the client responded
   });
 
