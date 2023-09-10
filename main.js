@@ -29,11 +29,6 @@ console.log(
 );
 
 wss.on("connection", function (ws, req) {
-    console.log(
-        `Connection Opened Main Clients:${
-            Object.keys(mainClients).length
-        } Queued Clients:${queuedClients.length}`
-    );
 
     ws.on("message", (data) => {
         let stringifiedData = data.toString();
@@ -81,6 +76,12 @@ wss.on("connection", function (ws, req) {
             }
         }
     });
+
+    console.log(
+      `Connection Opened Main Clients:${
+          Object.keys(mainClients).length
+      } Queued Clients:${queuedClients.length}`
+    );
     
     // Manage new connections
     // if (mainClients.length < ACTIVE_LIMIT) {
