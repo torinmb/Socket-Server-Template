@@ -1,15 +1,18 @@
 const http = require("http");
 const express = require("express");
 const app = express();
+const { v4: uuidv4 } = require('uuid');
 
 app.use(express.static("public"));
-// require("dotenv").config();
+
+const ACTIVE_LIMIT = 5;
 
 const serverPort = process.env.PORT || 3000;
 const server = http.createServer(app);
 const WebSocket = require("ws");
 
 let keepAliveId;
+let touchDesignerClient = null;
 
 const wss =
   process.env.NODE_ENV === "production"
@@ -28,17 +31,65 @@ wss.on("connection", function (ws, req) {
     keepServerAlive();
   }
 
+  ws.once('message', (initialData) => {
+    let stringifiedData = initialData.toString();
+
+    // If the connecting client is the TouchDesigner client
+    if (stringifiedData === "TOUCHDESIGNER_ID") {
+      if (touchDesignerClient) {  // If another TD client is already connected, close the previous one
+        touchDesignerClient.close();
+      }
+      touchDesignerClient = ws;
+      ws.key = uuidv4();
+      console.log("TouchDesigner client connected!");
+      ws.send(JSON.stringify({ type: "status", status: "connected", key: ws.key }));
+      return;
+    }
+
+    // For regular clients, if they're within the ACTIVE_LIMIT, allow them to connect
+    if ((wss.clients.size - (touchDesignerClient ? 1 : 0)) > ACTIVE_LIMIT) {
+      if (!ws.key) {  // If this client doesn't have a key yet, they're a new connection
+        ws.send(JSON.stringify({ type: "status", status: "queued" }));
+        ws.close(); // Close the connection if over limit
+        return;
+      }
+    } else {
+      ws.key = ws.key || uuidv4();  // Assign a key if it doesn't have one yet
+      ws.send(JSON.stringify({ type: "status", status: "connected", key: ws.key }));
+    }
+  });
+
   ws.on("message", (data) => {
     let stringifiedData = data.toString();
     if (stringifiedData === 'pong') {
       console.log('keepAlive');
       return;
     }
-    broadcast(ws, stringifiedData, false);
+    // if (stringifiedData === "TOUCHDESIGNER_ID") {
+    //     touchDesignerClient = ws;
+    //     console.log("TouchDesigner client connected!");
+    //     return;
+    // }
+    if (touchDesignerClient && touchDesignerClient.readyState === WebSocket.OPEN) {
+        if (ws.key !== undefined) {
+            const modifiedMessage = {
+                id: ws.key,
+                data: JSON.parse(data),
+            };
+            touchDesignerClient.send(JSON.stringify(modifiedMessage));
+        }
+    }
+    // broadcast(ws, stringifiedData, false);
   });
 
   ws.on("close", (data) => {
     console.log("closing connection");
+
+    if (ws === touchDesignerClient) {
+        console.log("TouchDesigner client disconnected!");
+        touchDesignerClient = null;
+        return;
+    }
 
     if (wss.clients.size === 0) {
       console.log("last client disconnected, stopping keepAlive interval");
