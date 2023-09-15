@@ -49,7 +49,7 @@ wss.on("connection", function (ws, req) {
     // For regular clients, if they're within the ACTIVE_LIMIT, allow them to connect
     if ((wss.clients.size - (touchDesignerClient ? 1 : 0)) > ACTIVE_LIMIT) {
       if (!ws.key) {  // If this client doesn't have a key yet, they're a new connection
-        ws.send(JSON.stringify({ type: "status", status: "queued" }));
+        ws.send(JSON.stringify({ type: "status", status: "queued", count: wss.clients.size }));
         ws.close(); // Close the connection if over limit
         return;
       }
@@ -65,11 +65,12 @@ wss.on("connection", function (ws, req) {
       console.log('keepAlive');
       return;
     }
-    // if (stringifiedData === "TOUCHDESIGNER_ID") {
-    //     touchDesignerClient = ws;
-    //     console.log("TouchDesigner client connected!");
-    //     return;
-    // }
+
+    if (stringifiedData === "TOUCHDESIGNER_ID" || stringifiedData === "clientConnection") {
+        console.log("start message", stringifiedData);
+        return;
+    }
+
     if (touchDesignerClient && touchDesignerClient.readyState === WebSocket.OPEN) {
         if (ws.key !== undefined) {
             const modifiedMessage = {
@@ -84,6 +85,15 @@ wss.on("connection", function (ws, req) {
 
   ws.on("close", (data) => {
     console.log("closing connection");
+    if (touchDesignerClient && touchDesignerClient.readyState === WebSocket.OPEN) {
+        if (ws.key !== undefined) {
+            const message = {
+                id: ws.key,
+                disconnect: true,
+            };
+            touchDesignerClient.send(JSON.stringify(message));
+        }
+    }
 
     if (ws === touchDesignerClient) {
         console.log("TouchDesigner client disconnected!");
