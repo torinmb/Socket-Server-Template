@@ -61,7 +61,8 @@ wss.on("connection", function (ws, req) {
 
   ws.on("message", (data) => {
     let stringifiedData = data.toString();
-    if (stringifiedData === 'pong') {
+
+    if (stringifiedData === 'pong' || stringifiedData === 'ping') {
       console.log('keepAlive');
       return;
     }
