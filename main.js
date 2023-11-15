@@ -79,5 +79,5 @@ const broadcast = (ws, message, includeSelf) => {
 
 
 app.get('/', function(req,res) {
-  res.sendfile('/index.html');
+  res.sendfile('index.html');
 });
