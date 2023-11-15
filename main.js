@@ -5,6 +5,8 @@ const app = express();
 //app.use(express.static("public"));
 // require("dotenv").config();
 
+
+
 app.use(express.static('public', {
   setHeaders: (res, path) => {
     if (path.endsWith('.css')) {
@@ -12,6 +14,16 @@ app.use(express.static('public', {
     }
   },
 }));
+
+
+app.use(express.static('public', {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+  },
+}));
+
 
 const serverPort = process.env.PORT || 3000;
 const server = http.createServer(app);
