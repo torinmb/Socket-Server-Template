@@ -18,3 +18,24 @@
     "ws": "^8.2.2"
   }
 }
+
+{
+  "headers": {
+    "/static/**": {
+      "X-Content-Type-Options": "nosniff"
+    }
+  }
+}
+{
+  "headers": {
+    "/script.js": {
+      "Content-Type": "application/javascript"
+    }
+  }
+  {
+  "headers": {
+    "/style.css": {
+      "Content-Type": "text/css"
+    }
+  }
+}
