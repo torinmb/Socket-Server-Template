@@ -78,6 +78,6 @@ const broadcast = (ws, message, includeSelf) => {
 };
 
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
+app.get('/', function(req,res) {
+  res.sendfile('/index.html');
 });
