@@ -1,0 +1,148 @@
+body{
+    background: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    margin: 3%;
+}
+.controlTD{
+    border-radius: 50px;
+    background: red;
+    box-shadow:  20px 20px 60px #bebebe,
+                 -20px -20px 60px #ffffff;
+}
+.neu1{
+    border-radius: 50px;
+    background: #e0e0e0;
+    box-shadow: inset 3px 3px 6px #bebebe,
+                inset -3px -3px 6px #ffffff;
+                height: 50px;
+                width: 50px;
+                margin: 20px;
+}
+
+
+input[type="range"] {
+    /* To remove default styles appplied by webkit browsers */
+    -webkit-appearance: none; 
+
+    width: 25em;
+    background: transparent;
+    position: relative;
+    margin: 20px;
+}   
+
+input[type="range"]:focus {
+    /* To remove default (mostly blue) outline appplied by browsers on :focus */
+    outline: 0;
+}
+
+/* SLIDER THUMB -> represented by the orange ball in the design */
+/* Webkit based browsers (chrome, opera, ...) */
+input[type="range"]::-webkit-slider-thumb {
+     /* Removes the default styling */
+    -webkit-appearance: none;
+
+    width: 3em;
+    height: 3em;
+    margin: .5em 0;
+    background: hsl(0, 0%, 76%);
+    border-radius: 100%;
+
+    /* The inset shadow gives depth and makes the thumb look 3 dimensional and the other one shows a subtle effect of the shadow it creates because of the light source coming from the top left of the page */
+    box-shadow: 
+                inset .8em .8em 5px -8px rgba(255, 255, 255, .4),
+                inset -.4em -.4em 10px -3px rgba(0,0,0,.2),
+                0.7em 0.5em 7px -0.5em rgba(0,0,0,.4);;
+
+    cursor: pointer;
+}
+
+/*All the same stuff for firefox */
+input[type=range]::-moz-range-thumb {
+    width: 3em;
+    height: 3em;
+    margin: .5em 0;
+    background: #b3b3b3;
+    border-radius: 100%;
+    box-shadow: 
+                inset .8em .8em 5px -8px rgba(255, 255, 255, .4),
+                inset -.4em -.4em 10px -3px rgba(250, 250, 250, 0.2),
+                0.7em 0.5em 7px -0.5em rgba(0,0,0,.4);
+    cursor: pointer;
+    border: 0;
+}
+
+
+/* RUNNABLE TRACK -> represented by the indented carve in which the ball (thumb) moves */
+/* Webkit browsers */
+input[type="range"]::-webkit-slider-runnable-track {
+    background: transparent;
+    width: 100%;
+    height: 4em;
+    padding: 0 1em;
+    border-radius: 2em;
+
+    /* These shadow are what create the skeumorphic indent on the track. The first one is dark to show places in the indent that light don't reach and the second one shows places where light meets thereby creating the illusion of depth */ 
+    box-shadow: 
+               inset 3px 3px 6px #bebebe,
+                inset -3px -3px 6px #ffffff;
+}
+/* For firefox */
+input[type=range]::-moz-range-track {
+    background: transparent;
+    width: 100%;
+    height: 4em;
+    padding: 0 1em;
+    border-radius: 2em;
+    box-shadow: 
+    inset 3px 3px 6px #bebebe,
+    inset -3px -3px 6px #ffffff;
+}
+
+/* For the numbering in the range's design - doesn't show on firefox but shows on chrome and opera */
+input[type="range"]::before {
+    content: "0 1 2 3 4 5 6 7 8 9";
+    position: absolute;
+    text-align: center;
+    color: #c4c4c4;
+    font-size: 1em;
+
+    /*Serves to spread the letters to fit the whole width of the track */
+    letter-spacing: .65em;
+
+    top: 0; bottom: 0;
+    left: 0; right: 0;
+    padding: 1.6em;
+
+    /* Makes the letters look embossed adding to the skeumorphic theme of the design */
+    text-shadow: .5px .5px 0.9px rgba(0,0,0, .4);
+
+    z-index: -1;
+}
+
+
+.text {
+    color: var(--colorMain);
+    font-size: 8em;
+    font-weight: bold;
+    font-family: 'Tangerine', cursive;
+
+    text-shadow: var(--brShadow), 
+                 var(--tlShadow);
+    position: relative;
+}
+.text {
+
+    margin-top: 50px;
+    transform: translate(-50%,-50%);
+    top: 50%;
+    left: 50%;
+
+    font-size: 150px;
+    color: #e0e0e0;
+    text-shadow: 
+    -8px -8px 12px rgba(255,255,255,0.4),
+    8px 8px 12px rgba(0,0,0,0.2);
+    caret-color:#0c0c0c;
+    outline: none;
+ }
